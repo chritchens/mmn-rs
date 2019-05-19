@@ -1,5 +1,5 @@
 [package]
-name = "mmn-rs"
+name = "mmn"
 version = "0.1.0"
 authors = ["chritchens <chritchens@gmail.com>"]
 edition = "2018"
@@ -7,6 +7,10 @@ edition = "2018"
 repository = "https://github.com/chritchens/mmt"
 homepage = "https://github.com/chritchens/mmt"
 license = "MIT/Apache-2.0"
+
+[lib]
+name = "mmn_lib"
+path = "src/lib.rs"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
