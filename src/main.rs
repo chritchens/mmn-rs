@@ -292,14 +292,6 @@ impl Iterator for DataEntries {
     }
 }
 
-#[cfg(test)]
-mod test {
-    #[test]
-    fn is_ok() {
-        assert!(true);
-    }
-}
-
 fn main() {
     let entries = DataEntries::from_tifu_training_data().unwrap();
     println!("{:?}", entries[0]);
