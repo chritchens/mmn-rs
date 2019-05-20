@@ -87,6 +87,7 @@ fn fetch_tifu_dataset_archive() -> Vec<u8> {
     let mut curl = easy::Easy::new();
 
     curl.url(TIFU_DATASET_URL).unwrap();
+    curl.follow_location(true).unwrap();
 
     {
         let mut transfer = curl.transfer();
@@ -123,6 +124,7 @@ fn main() {
 
     println!("fetching the TIFU dataset archive...");
     let tifu_dataset_archive = fetch_tifu_dataset_archive();
+    println!("tifu dataset archive in MB: {}", tifu_dataset_archive.len() / 1000000);
 
     println!("writing the TIFU dataset archive to tmp/{}", TIFU_DATASET_ARCHIVE_FILE);
     // TODO
