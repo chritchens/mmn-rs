@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use std::borrow::ToOwned;
 use std::ops::Index;
 use std::iter::Iterator;
+use std::thread;
 use crate::result::Result;
 use crate::path::tifu_training_data_path;
 use crate::data_entry::DataEntry;
@@ -42,19 +43,22 @@ impl DataEntries {
 
     /// `from_tifu_training_data` creates a `DataEntries` from the `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
     pub fn from_tifu_training_data() -> Result<DataEntries> {
-        let path = tifu_training_data_path();
-        let mut file = File::open(&path).map_err(|e| format!("{}", e)).unwrap();
-        let mut text = String::new();
-        file.read_to_string(&mut text).map_err(|e| format!("{}", e)).unwrap();
-        let lines = text.lines();
+        thread::spawn(move || {
+            let path = tifu_training_data_path();
+            let mut file = File::open(&path).map_err(|e| format!("{}", e)).unwrap();
+            let mut text = String::new();
+            file.read_to_string(&mut text).map_err(|e| format!("{}", e)).unwrap();
+            let lines = text.lines();
 
-        let mut data_entries = DataEntries::new();
+            let mut data_entries = DataEntries::new();
 
-        for line in lines {
-            data_entries.push(DataEntry::from_json_string(&line)?);
-        }
+            for line in lines {
+                data_entries.push(DataEntry::from_json_string(&line)?);
+            }
 
-        Ok(data_entries)
+            Ok(data_entries)
+        })
+        .join()
     }
 }
 
