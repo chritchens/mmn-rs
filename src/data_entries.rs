@@ -22,6 +22,16 @@ impl DataEntries {
     pub fn new() -> DataEntries {
         DataEntries::default()
     }
+    
+    /// `len` returns the `DataEntries` number of entries.
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    /// `is_empty` returns if the `DataEntries` is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
 
     /// `push` pushes a `DataEntry` in the `DataEntries`.
     pub fn push(&mut self, entry: DataEntry) {

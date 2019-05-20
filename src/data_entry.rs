@@ -217,15 +217,15 @@ impl DataEntry {
 mod test {
     use super::DataEntry;
 
-    const valid_entry: &str = r#"{"title_tokenized": ["tifu", "by", "forgetting", "to", "pull", "my", "underwear", "down", "before", "i", "pooped"], "permalink": "/r/tifu/comments/1ghd5r/tifu_by_forgetting_to_pull_my_underwear_down/", "title": "TIFU by forgetting to pull my underwear down before I pooped.", "url": "https://www.reddit.com/r/tifu/comments/1ghd5r/tifu_by_forgetting_to_pull_my_underwear_down/", "num_comments": 13, "tldr": null, "created_utc": 1371426179.0, "trimmed_title_tokenized": ["forgetting", "to", "pull", "my", "underwear", "down", "before", "i", "pooped"], "id": "1ghd5r", "selftext_html": "<!-- SC_OFF --><div class=\"md\"><p>I was on Skype on my tablet as I went to the toilet IMing a friend. I don&#39;t multitask very well, so I forgot one of the most important things to do before pooping. I think the best part was when I realised and told my mate who just freaked out because I was talking to him on the John!</p>\n</div><!-- SC_ON -->", "score": 50, "upvote_ratio": 0.77, "tldr_tokenized": null, "selftext": "I was on Skype on my tablet as I went to the toilet IMing a friend. I don't multitask very well, so I forgot one of the most important things to do before pooping. I think the best part was when I realised and told my mate who just freaked out because I was talking to him on the John!", "trimmed_title": "forgetting to pull my underwear down before i pooped.", "selftext_without_tldr_tokenized": ["i", "was", "on", "skype", "on", "my", "tablet", "as", "i", "went", "to", "the", "toilet", "iming", "a", "friend", "i", "do", "n't", "multitask", "very", "well", "so", "i", "forgot", "one", "of", "the", "most", "important", "things", "to", "do", "before", "pooping", "i", "think", "the", "best", "part", "was", "when", "i", "realised", "and", "told", "my", "mate", "who", "just", "freaked", "out", "because", "i", "was", "talking", "to", "him", "on", "the", "john"], "ups": 50, "selftext_without_tldr": "i was on skype on my tablet as i went to the toilet iming a friend. i don't multitask very well, so i forgot one of the most important things to do before pooping. i think the best part was when i realised and told my mate who just freaked out because i was talking to him on the john!"}"#;
+    const VALID_ENTRY: &str = r#"{"title_tokenized": ["tifu", "by", "forgetting", "to", "pull", "my", "underwear", "down", "before", "i", "pooped"], "permalink": "/r/tifu/comments/1ghd5r/tifu_by_forgetting_to_pull_my_underwear_down/", "title": "TIFU by forgetting to pull my underwear down before I pooped.", "url": "https://www.reddit.com/r/tifu/comments/1ghd5r/tifu_by_forgetting_to_pull_my_underwear_down/", "num_comments": 13, "tldr": null, "created_utc": 1371426179.0, "trimmed_title_tokenized": ["forgetting", "to", "pull", "my", "underwear", "down", "before", "i", "pooped"], "id": "1ghd5r", "selftext_html": "<!-- SC_OFF --><div class=\"md\"><p>I was on Skype on my tablet as I went to the toilet IMing a friend. I don&#39;t multitask very well, so I forgot one of the most important things to do before pooping. I think the best part was when I realised and told my mate who just freaked out because I was talking to him on the John!</p>\n</div><!-- SC_ON -->", "score": 50, "upvote_ratio": 0.77, "tldr_tokenized": null, "selftext": "I was on Skype on my tablet as I went to the toilet IMing a friend. I don't multitask very well, so I forgot one of the most important things to do before pooping. I think the best part was when I realised and told my mate who just freaked out because I was talking to him on the John!", "trimmed_title": "forgetting to pull my underwear down before i pooped.", "selftext_without_tldr_tokenized": ["i", "was", "on", "skype", "on", "my", "tablet", "as", "i", "went", "to", "the", "toilet", "iming", "a", "friend", "i", "do", "n't", "multitask", "very", "well", "so", "i", "forgot", "one", "of", "the", "most", "important", "things", "to", "do", "before", "pooping", "i", "think", "the", "best", "part", "was", "when", "i", "realised", "and", "told", "my", "mate", "who", "just", "freaked", "out", "because", "i", "was", "talking", "to", "him", "on", "the", "john"], "ups": 50, "selftext_without_tldr": "i was on skype on my tablet as i went to the toilet iming a friend. i don't multitask very well, so i forgot one of the most important things to do before pooping. i think the best part was when i realised and told my mate who just freaked out because i was talking to him on the john!"}"#;
 
     fn valid_entry_into_bytes() -> Vec<u8> {
-       String::from(valid_entry).into_bytes()
+       String::from(VALID_ENTRY).into_bytes()
     }
 
     #[test]
-    fn test_serialize_entry() {
-        let res = DataEntry::from_json_string(valid_entry);
+    fn test_data_entry_serialize() {
+        let res = DataEntry::from_json_string(VALID_ENTRY);
         assert!(res.is_ok());
         let data_entry_0 = res.unwrap();
         let res = data_entry_0.to_json_string();
@@ -233,7 +233,7 @@ mod test {
         let json_string_data_entry_0 = res.unwrap();
         assert_eq!(data_entry_0, DataEntry::from_json_string(&json_string_data_entry_0).unwrap());
 
-        let res = serde_json::from_str(valid_entry);
+        let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value = res.unwrap();
 
@@ -259,8 +259,8 @@ mod test {
     }
 
     #[test]
-    fn test_missing_fields() {
-        let res = serde_json::from_str(valid_entry);
+    fn test_data_entry_missing_fields() {
+        let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value: serde_json::Value = res.unwrap();
 
@@ -287,8 +287,8 @@ mod test {
     }
 
     #[test]
-    fn test_null_fields() {
-        let res = serde_json::from_str(valid_entry);
+    fn test_data_entry_null_fields() {
+        let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value: serde_json::Value = res.unwrap();
 
@@ -315,8 +315,8 @@ mod test {
     }
 
     #[test]
-    fn test_num_fields() {
-        let res = serde_json::from_str(valid_entry);
+    fn test_data_entry_num_fields() {
+        let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value: serde_json::Value = res.unwrap();
 
