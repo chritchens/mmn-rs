@@ -22,7 +22,7 @@ impl DataEntries {
     pub fn new() -> DataEntries {
         DataEntries::default()
     }
-    
+
     /// `len` returns the `DataEntries` number of entries.
     pub fn len(&self) -> usize {
         self.len
@@ -92,4 +92,54 @@ impl Iterator for DataEntries {
             None
         }
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::DataEntries;
+    use crate::data_entry::DataEntry;
+
+    #[test]
+    fn test_data_entries_modifiers() {
+        let d  = DataEntry::new();
+        let d1 = d.clone();
+        let d2 = d.clone();
+        let d3 = d.clone();
+
+        let mut ds = DataEntries::new();
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+
+        ds.push(d1);
+        assert_eq!(ds.len(), 1);
+        assert!(!ds.is_empty());
+
+        let dx_opt = ds.pop();
+        assert!(dx_opt.is_some());
+
+        let dx = dx_opt.unwrap();
+        assert_eq!(d, dx);
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+
+        ds.push(d2);
+        ds.push(d3);
+        assert_eq!(ds.len(), 2);
+        assert!(!ds.is_empty());
+
+        let dy_opt = ds.pop();
+        assert!(dy_opt.is_some());
+        let dz_opt = ds.pop();
+        assert!(dz_opt.is_some());
+
+        let dy = dy_opt.unwrap();
+        let dz = dz_opt.unwrap();
+        assert_eq!(dy, d);
+        assert_eq!(dz, d);
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+    }
+
+    #[test]
+    fn test_data_entries_tifu_datasets() {}
 }
