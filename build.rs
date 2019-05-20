@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 use std::env;
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Write};
+use std::thread;
+use std::sync::mpsc::{channel, Sender, Receiver};
 
 /// `DEFAULT_DATA_DIR` is the default directory for the dataset(s).
 const DEFAULT_DATA_DIR: &str = "data";
@@ -53,28 +55,38 @@ fn tifu_dataset_file_path<P: AsRef<Path>>(data_dir_path: P) -> PathBuf {
 
 /// `TIFUDatasetArchiveHandler` is the `curl::easy::Handler` used by `curl::easy::Easy2` to
 /// write the archive data
-struct TIFUDatasetArchiveHandler(Vec<u8>);
+struct TIFUDatasetArchiveHandler {
+    bytes: usize,
+    contents: Vec<u8>,
+}
 
 impl TIFUDatasetArchiveHandler {
     /// `new` creates a new instance of `TIFUDatasetArchiveHandler`.
     fn new() -> TIFUDatasetArchiveHandler {
-        TIFUDatasetArchiveHandler(Vec::new())
+        TIFUDatasetArchiveHandler { bytes: 0, contents: Vec::new() }
+    }
+
+    /// `size` returns the actual size of the inner contents of the `TIFUDatasetArchiveHandler`.
+    fn size(&self) -> usize {
+        self.bytes
     }
 
     /// `drain` returns the inner contents of the `TIFUDatasetArchiveHandler`
     /// removing them from the handler.
     fn drain(&mut self) -> Vec<u8> {
-        let contents = self.0.to_owned();
-        self.0.clear();
+        let contents = self.contents.to_owned();
+        self.contents.clear();
         contents
     }
 }
 
 impl Handler for TIFUDatasetArchiveHandler {
     fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
-        self.0.extend_from_slice(data);
+        self.contents.extend_from_slice(data);
         let size = data.len();
-        println!("fetched {} bytes from the remote TIFU dataset archive", size);
+        self.bytes += size;
+        let tot_size = self.size();
+        println!("TIFU dataset archive: fetched {} bytes, tot bytes: {} of 141774983", size, tot_size);
         Ok(size)
     }
 }
@@ -86,6 +98,8 @@ fn fetch_tifu_dataset_archive() -> Vec<u8> {
     curl.url(TIFU_DATASET_URL).unwrap();
     curl.get(true);
     curl.follow_location(true).unwrap();
+
+    curl.perform().unwrap();
 
     curl.get_mut().drain()
 }
@@ -104,7 +118,6 @@ fn main() {
     println!("build.rs starting...");
 
     println!("checking for $DATA_DIR variables, defaulting to $DEFAULT_DATA_DIR if absent...");
-    
     let data_dir = data_dir_from_env();
     let data_dir_path = data_dir_path(&data_dir);
     let tifu_dataset_file_path = tifu_dataset_file_path(&data_dir);
@@ -113,11 +126,9 @@ fn main() {
     println!("tifu dataset file path set at '{}'", tifu_dataset_file_path.display());
 
     println!("checking if the data directory already exists...");
-    
     if dir_exists(&data_dir_path) {
         println!("the data directory already exists...");
         println!("checking if the TIFU dataset file already exists...");
-
         if file_exists(&tifu_dataset_file_path) {
             println!("the TIFU dataset already exists");
             return;
@@ -127,22 +138,28 @@ fn main() {
     } else {
         println!("the data directory does not exist");
         println!("building the data directory...");
-    
         build_data_dir(data_dir);
     }
 
-    println!("fetching the TIFU dataset archive...");
+    let tifu_dataset = thread::spawn(move || {
+        let (extract_sender, extract_receiver) = channel();
 
-    // TODO: other thread
-    let tifu_dataset_archive = fetch_tifu_dataset_archive();
+        thread::spawn(move || {
+            println!("fetching the TIFU dataset archive...");
+            let tifu_dataset_archive = fetch_tifu_dataset_archive();
+            extract_sender.send(tifu_dataset_archive)
+        })
+        .join()
+        .unwrap();
 
-    println!("extracting the TIFU dataset archive...");
-    
-    // TODO: other thread
-    let tifu_dataset = extract_tifu_dataset_archive(&tifu_dataset_archive);
+        println!("extracting the TIFU dataset archive...");
+        let tifu_dataset_archive = extract_receiver.recv().unwrap();
+        extract_tifu_dataset_archive(&tifu_dataset_archive)
+    })
+    .join()
+    .unwrap();
 
     println!("writing the TIFU dataset into '{}'...", tifu_dataset_file_path.display());
-    
     let mut tifu_dataset_file = File::create(tifu_dataset_file_path).unwrap();
     tifu_dataset_file.write_all(&tifu_dataset).unwrap();
 
