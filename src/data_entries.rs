@@ -45,9 +45,9 @@ impl DataEntries {
     pub fn from_tifu_training_data() -> Result<DataEntries> {
         thread::spawn(move || {
             let path = tifu_training_data_path();
-            let mut file = File::open(&path).map_err(|e| format!("{}", e)).unwrap();
+            let mut file = File::open(&path).map_err(|e| format!("{}", e))?;
             let mut text = String::new();
-            file.read_to_string(&mut text).map_err(|e| format!("{}", e)).unwrap();
+            file.read_to_string(&mut text).map_err(|e| format!("{}", e))?;
             let lines = text.lines();
 
             let mut data_entries = DataEntries::new();
@@ -59,6 +59,7 @@ impl DataEntries {
             Ok(data_entries)
         })
         .join()
+        .unwrap()
     }
 }
 
