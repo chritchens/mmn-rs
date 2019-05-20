@@ -7,7 +7,7 @@ const TIFU_DATASET_ARCHIVE_FILENAME: &str = "tifu_all_tokenized_and_filtered.zip
 /// `TIFU_DATASET_FILENAME` is the TIFU dataset filename.
 const TIFU_DATASET_FILENAME: &str = "tifu_all_tokenized_and_filtered.json";
 /// `TIFU_DATASET_URL` is the TIFU dataset url.
-const TIFU_DATASET_URL: &str = "https://github.com/chritchens/mmn_dataset/raw/master/tifu_all_tokenized_and_filtered.zip";
+const TIFU_DATASET_URL: &str = "https://github.com/chritchens/mmn_dataset/raw/master/data/tifu_all_tokenized_and_filtered.zip";
 
 fn main() {
     println!("build.rs starting...");
