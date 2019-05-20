@@ -1,4 +1,4 @@
-use curl::easy;
+use curl::easy::{Easy2, Handler, WriteError};
 use zip::ZipArchive;
 use std::path::{Path, PathBuf};
 use std::env;
@@ -51,24 +51,43 @@ fn tifu_dataset_file_path<P: AsRef<Path>>(data_dir_path: P) -> PathBuf {
     data_dir
 }
 
-/// `fetch_tifu_dataset_archive` fetches the TIFU dataset archive.
-fn fetch_tifu_dataset_archive() -> Vec<u8> {
-    let mut archive_data = Vec::new();
-    let mut curl = easy::Easy::new();
+/// `TIFUDatasetArchiveHandler` is the `curl::easy::Handler` used by `curl::easy::Easy2` to
+/// write the archive data
+struct TIFUDatasetArchiveHandler(Vec<u8>);
 
-    curl.url(TIFU_DATASET_URL).unwrap();
-    curl.follow_location(true).unwrap();
-
-    {
-        let mut transfer = curl.transfer();
-        transfer.write_function(|data| {
-            archive_data.extend_from_slice(&data);
-            Ok(data.len())
-        }).unwrap();
-        transfer.perform().unwrap();
+impl TIFUDatasetArchiveHandler {
+    /// `new` creates a new instance of `TIFUDatasetArchiveHandler`.
+    fn new() -> TIFUDatasetArchiveHandler {
+        TIFUDatasetArchiveHandler(Vec::new())
     }
 
-    archive_data
+    /// `drain` returns the inner contents of the `TIFUDatasetArchiveHandler`
+    /// removing them from the handler.
+    fn drain(&mut self) -> Vec<u8> {
+        let contents = self.0.to_owned();
+        self.0.clear();
+        contents
+    }
+}
+
+impl Handler for TIFUDatasetArchiveHandler {
+    fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
+        self.0.extend_from_slice(data);
+        let size = data.len();
+        println!("fetched {} bytes from the remote TIFU dataset archive", size);
+        Ok(size)
+    }
+}
+
+/// `fetch_tifu_dataset_archive` fetches the TIFU dataset archive.
+fn fetch_tifu_dataset_archive() -> Vec<u8> {
+    let mut curl = Easy2::new(TIFUDatasetArchiveHandler::new());
+
+    curl.url(TIFU_DATASET_URL).unwrap();
+    curl.get(true);
+    curl.follow_location(true).unwrap();
+
+    curl.get_mut().drain()
 }
 
 /// `extract_tifu_dataset_archive` extracts the TIFU dataset archive.
@@ -113,11 +132,13 @@ fn main() {
     }
 
     println!("fetching the TIFU dataset archive...");
-    
+
+    // TODO: other thread
     let tifu_dataset_archive = fetch_tifu_dataset_archive();
 
     println!("extracting the TIFU dataset archive...");
     
+    // TODO: other thread
     let tifu_dataset = extract_tifu_dataset_archive(&tifu_dataset_archive);
 
     println!("writing the TIFU dataset into '{}'...", tifu_dataset_file_path.display());
