@@ -8,6 +8,8 @@ repository = "https://github.com/chritchens/mmt"
 homepage = "https://github.com/chritchens/mmt"
 license = "MIT/Apache-2.0"
 
+build = "build.rs"
+
 [lib]
 name = "mmn_lib"
 path = "src/lib.rs"
