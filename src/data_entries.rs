@@ -36,7 +36,7 @@ impl DataEntries {
     /// `push` pushes a `DataEntry` in the `DataEntries`.
     pub fn push(&mut self, entry: DataEntry) {
         self.len += 1;
-        self.data.push(entry.to_owned());
+        self.data.push(entry);
     }
 
     /// `pop` pops a `DataEntry` from the `DataEntries`.
@@ -85,9 +85,10 @@ impl Iterator for DataEntries {
     type Item = DataEntry;
 
     fn next(&mut self) -> Option<DataEntry> {
-        if self.idx != self.len -1 {
+        if self.idx != self.len {
+            let item = self.data[self.idx].to_owned();
             self.idx += 1;
-            Some(self.data[self.idx].to_owned())
+            Some(item)
         } else {
             None
         }
@@ -98,6 +99,42 @@ impl Iterator for DataEntries {
 mod test {
     use super::DataEntries;
     use crate::data_entry::DataEntry;
+
+    #[test]
+    fn test_data_entries_accessors() {
+        let mut d1 = DataEntry::new();
+        d1.title = "d1".to_string();
+        let mut d2 = DataEntry::new();
+        d2.title = "d2".to_string();
+        let mut d3 = DataEntry::new();
+        d3.title = "d3".to_string();
+        
+        let mut ds = DataEntries::new();
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+
+        ds.push(d1.clone());
+        assert_eq!(ds.len(), 1);
+        assert!(!ds.is_empty());
+        assert_eq!(ds[0], d1);
+
+        ds.push(d2.clone());
+        assert_eq!(ds.len(), 2);
+        assert!(!ds.is_empty());
+        assert_eq!(ds[0], d1);
+        assert_eq!(ds[1], d2);
+
+        ds.push(d3.clone());
+        assert_eq!(ds.len(), 3);
+        assert!(!ds.is_empty());
+        assert_eq!(ds[0], d1);
+        assert_eq!(ds[1], d2);
+        assert_eq!(ds[2], d3);
+
+        for (i, v) in ds.clone().enumerate() {
+            assert_eq!(v, ds[i]);
+        }
+    }
 
     #[test]
     fn test_data_entries_modifiers() {
