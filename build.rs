@@ -5,7 +5,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Write};
 use std::thread;
-use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::mpsc::channel;
 
 /// `DEFAULT_DATA_DIR` is the default directory for the dataset(s).
 const DEFAULT_DATA_DIR: &str = "data";
@@ -96,7 +96,7 @@ fn fetch_tifu_dataset_archive() -> Vec<u8> {
     let mut curl = Easy2::new(TIFUDatasetArchiveHandler::new());
 
     curl.url(TIFU_DATASET_URL).unwrap();
-    curl.get(true);
+    curl.get(true).unwrap();
     curl.follow_location(true).unwrap();
 
     curl.perform().unwrap();
@@ -147,7 +147,7 @@ fn main() {
         thread::spawn(move || {
             println!("fetching the TIFU dataset archive...");
             let tifu_dataset_archive = fetch_tifu_dataset_archive();
-            extract_sender.send(tifu_dataset_archive)
+            extract_sender.send(tifu_dataset_archive).unwrap()
         })
         .join()
         .unwrap();
