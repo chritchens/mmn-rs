@@ -7,92 +7,92 @@ use std::iter::Iterator;
 use std::thread;
 use crate::result::Result;
 use crate::path::tifu_training_data_path;
-use crate::data_entry::DataEntry;
+use crate::raw_data_entry::RawDataEntry;
 
-/// `DataEntries` represent multiple data entries.
+/// `RawDataEntries` represent multiple data entries.
 #[derive(Clone, Default, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]
-pub struct DataEntries {
+pub struct RawDataEntries {
     idx: usize,
     len: usize,
-    data: Vec<DataEntry>,
+    data: Vec<RawDataEntry>,
 }
 
-impl DataEntries {
-    /// `new` creates a new `DataEntries`.
-    pub fn new() -> DataEntries {
-        DataEntries::default()
+impl RawDataEntries {
+    /// `new` creates a new `RawDataEntries`.
+    pub fn new() -> RawDataEntries {
+        RawDataEntries::default()
     }
 
-    /// `len` returns the `DataEntries` number of entries.
+    /// `len` returns the `RawDataEntries` number of entries.
     pub fn len(&self) -> usize {
         self.len
     }
 
-    /// `is_empty` returns if the `DataEntries` is empty.
+    /// `is_empty` returns if the `RawDataEntries` is empty.
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
 
-    /// `push` pushes a `DataEntry` in the `DataEntries`.
-    pub fn push(&mut self, entry: DataEntry) {
+    /// `push` pushes a `RawDataEntry` in the `RawDataEntries`.
+    pub fn push(&mut self, entry: RawDataEntry) {
         self.len += 1;
         self.data.push(entry);
     }
 
-    /// `pop` pops a `DataEntry` from the `DataEntries`.
-    pub fn pop(&mut self) -> Option<DataEntry> {
+    /// `pop` pops a `RawDataEntry` from the `RawDataEntries`.
+    pub fn pop(&mut self) -> Option<RawDataEntry> {
         self.len -= 1;
         self.data.pop()
     }
 
-    /// `extend_from_slice` extends the `DataEntries` with a slice of `DataEntry`s.
-    pub fn extend_from_slice(&mut self, entries: &[DataEntry]) {
+    /// `extend_from_slice` extends the `RawDataEntries` with a slice of `RawDataEntry`s.
+    pub fn extend_from_slice(&mut self, entries: &[RawDataEntry]) {
         self.len += entries.len();
         self.data.extend_from_slice(entries)
     }
 
-    /// `from_tifu_dataset_file` creates a `DataEntries` from `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
-    pub fn from_tifu_dataset_file(count: i32) -> Result<DataEntries> {
+    /// `from_tifu_dataset_file` creates a `RawDataEntries` from `RawDataEntry`s in `TIFU_TRAINING_DATA_PATH`.
+    pub fn from_tifu_dataset_file(count: i32) -> Result<RawDataEntries> {
         thread::spawn(move || {
             let path = tifu_training_data_path();
             let file = File::open(&path).map_err(|e| format!("{}", e))?;
             let reader = BufReader::new(file);
-            let mut data_entries = DataEntries::new();
+            let mut raw_data_entries = RawDataEntries::new();
 
             for (i, line) in reader.lines().enumerate() {
                 if i as i32 == count {
                     break;
                 }
 
-                let json_data_entry = line.unwrap();
-                let data_entry = DataEntry::from_json_string(&json_data_entry)?;
-                data_entries.push(data_entry);
+                let json_raw_data_entry = line.unwrap();
+                let raw_data_entry = RawDataEntry::from_json_string(&json_raw_data_entry)?;
+                raw_data_entries.push(raw_data_entry);
             }
 
-            Ok(data_entries)
+            Ok(raw_data_entries)
         })
         .join()
         .unwrap()
     }
 
-    /// `from_tifu_dataset_file_all` creates a `DataEntries` from all the `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
-    pub fn from_tifu_dataset_file_all() -> Result<DataEntries> {
-        DataEntries::from_tifu_dataset_file(-1)
+    /// `from_tifu_dataset_file_all` creates a `RawDataEntries` from all the `RawDataEntry`s in `TIFU_TRAINING_DATA_PATH`.
+    pub fn from_tifu_dataset_file_all() -> Result<RawDataEntries> {
+        RawDataEntries::from_tifu_dataset_file(-1)
     }
 }
 
-impl Index<usize> for DataEntries {
-    type Output = DataEntry;
+impl Index<usize> for RawDataEntries {
+    type Output = RawDataEntry;
 
-    fn index(&self, idx: usize) -> &DataEntry {
+    fn index(&self, idx: usize) -> &RawDataEntry {
         &self.data[idx]
     }
 }
 
-impl Iterator for DataEntries {
-    type Item = DataEntry;
+impl Iterator for RawDataEntries {
+    type Item = RawDataEntry;
 
-    fn next(&mut self) -> Option<DataEntry> {
+    fn next(&mut self) -> Option<RawDataEntry> {
         if self.idx != self.len {
             let item = self.data[self.idx].to_owned();
             self.idx += 1;
@@ -105,22 +105,22 @@ impl Iterator for DataEntries {
 
 #[cfg(test)]
 mod test {
-    use super::DataEntries;
-    use crate::data_entry::DataEntry;
+    use super::RawDataEntries;
+    use crate::raw_data_entry::RawDataEntry;
     use crate::path::tifu_training_data_path;
     use std::iter::Iterator;
     use std::io::{BufRead, BufReader};
 
     #[test]
-    fn test_data_entries_accessors() {
-        let mut d1 = DataEntry::new();
+    fn test_raw_data_entries_accessors() {
+        let mut d1 = RawDataEntry::new();
         d1.title = "d1".to_string();
-        let mut d2 = DataEntry::new();
+        let mut d2 = RawDataEntry::new();
         d2.title = "d2".to_string();
-        let mut d3 = DataEntry::new();
+        let mut d3 = RawDataEntry::new();
         d3.title = "d3".to_string();
         
-        let mut ds = DataEntries::new();
+        let mut ds = RawDataEntries::new();
         assert_eq!(ds.len(), 0);
         assert!(ds.is_empty());
 
@@ -148,13 +148,13 @@ mod test {
     }
 
     #[test]
-    fn test_data_entries_modifiers() {
-        let d  = DataEntry::new();
+    fn test_raw_data_entries_modifiers() {
+        let d  = RawDataEntry::new();
         let d1 = d.clone();
         let d2 = d.clone();
         let d3 = d.clone();
 
-        let mut ds = DataEntries::new();
+        let mut ds = RawDataEntries::new();
         assert_eq!(ds.len(), 0);
         assert!(ds.is_empty());
 
@@ -189,24 +189,24 @@ mod test {
     }
 
     #[test]
-    fn test_data_entries_from_tifu_dataset_file() {
+    fn test_raw_data_entries_from_tifu_dataset_file() {
         let count_1 = 0;
         let count_2 = 10;
         let count_3 = 20;
 
-        let res = DataEntries::from_tifu_dataset_file(count_1);
+        let res = RawDataEntries::from_tifu_dataset_file(count_1);
         assert!(res.is_ok());
 
         let ds_1 = res.unwrap();
         assert_eq!(ds_1.len(), count_1 as usize);
 
-        let res = DataEntries::from_tifu_dataset_file(count_2);
+        let res = RawDataEntries::from_tifu_dataset_file(count_2);
         assert!(res.is_ok());
 
         let ds_2 = res.unwrap();
         assert_eq!(ds_2.len(), count_2 as usize);
 
-        let res = DataEntries::from_tifu_dataset_file(count_3);
+        let res = RawDataEntries::from_tifu_dataset_file(count_3);
         assert!(res.is_ok());
 
         let ds_3 = res.unwrap();

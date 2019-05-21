@@ -2,38 +2,38 @@ use serde::{Serialize, Deserialize};
 use serde_json::{self, Value};
 use crate::result::Result;
 
-/// DataEntry is a struct representing an entry in the json training data entry.
+/// RawDataEntry is a struct representing an entry in the json training data entry.
 #[derive(Clone, Default, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]
-pub struct DataEntry {
-    pub title_tokenized: Vec<String>,
-    pub permalink: String,
-    pub title: String,
-    pub url: String,
-    pub num_comments: u64,
-    pub tldr: Option<String>,
-    pub created_utc: f64,
-    pub trimmed_title_tokenized: Vec<String>,
+pub struct RawDataEntry {
     pub id: String,
-    pub selftext_html: Option<String>,
-    pub score: u64,
-    pub upvote_ratio: f64,
-    pub tldr_tokenized: Option<Vec<String>>,
-    pub selftext: String,
+    pub url: String,
+    pub permalink: String,
+    pub created_utc: f64,
+    pub title: String,
+    pub title_tokenized: Vec<String>,
     pub trimmed_title: String,
-    pub selftext_without_tldr_tokenized: Vec<String>,
-    pub ups: u64,
+    pub trimmed_title_tokenized: Vec<String>,
+    pub tldr: Option<String>,
+    pub tldr_tokenized: Option<Vec<String>>,
+    pub selftext_html: Option<String>,
+    pub selftext: String,
     pub selftext_without_tldr: String,
+    pub selftext_without_tldr_tokenized: Vec<String>,
+    pub score: u64,
+    pub num_comments: u64,
+    pub ups: u64,
+    pub upvote_ratio: f64,
 }
 
-impl DataEntry {
-    /// `new` creates a new `DataEntry`.
-    pub fn new() -> DataEntry {
-        DataEntry::default()
+impl RawDataEntry {
+    /// `new` creates a new `RawDataEntry`.
+    pub fn new() -> RawDataEntry {
+        RawDataEntry::default()
     }
 
-    /// `from_json_value` converts a `serde_json::Value` into a `DataEntry`.
-    pub fn from_json_value(v: &Value) -> Result<DataEntry> {
-        let mut entry = DataEntry::new();
+    /// `from_json_value` converts a `serde_json::Value` into a `RawDataEntry`.
+    pub fn from_json_value(v: &Value) -> Result<RawDataEntry> {
+        let mut entry = RawDataEntry::new();
 
         if let Some(tt) = v["title_tokenized"].as_array() {
             if !tt.is_empty() {
@@ -186,27 +186,27 @@ impl DataEntry {
         Ok(entry)
     }
 
-    /// `from_json_string` converts a json `str` to a `DataEntry`.
-    pub fn from_json_string(s: &str) -> Result<DataEntry> {
+    /// `from_json_string` converts a json `str` to a `RawDataEntry`.
+    pub fn from_json_string(s: &str) -> Result<RawDataEntry> {
         let value: Value = serde_json::from_str(s)
             .map_err(|e| format!("{}", e))?;
-        DataEntry::from_json_value(&value)
+        RawDataEntry::from_json_value(&value)
     }
 
-    /// `to_json_string` converts the `DataEntry` to a `String`.
+    /// `to_json_string` converts the `RawDataEntry` to a `String`.
     pub fn to_json_string(&self) -> Result<String> {
         serde_json::to_string(self)
             .map_err(|e| format!("{}", e))
     }
 
-    /// `from_json_bytes` converts a `&[u8]` to `DataEntry`.
-    pub fn from_json_bytes(b: &[u8]) -> Result<DataEntry> {
+    /// `from_json_bytes` converts a `&[u8]` to `RawDataEntry`.
+    pub fn from_json_bytes(b: &[u8]) -> Result<RawDataEntry> {
         let value: Value = serde_json::from_slice(b)
             .map_err(|e| format!("{}", e))?;
-        DataEntry::from_json_value(&value)
+        RawDataEntry::from_json_value(&value)
     }
 
-    /// `to_json_bytes` converts the `DataEntry` to a `Vec<u8>`.
+    /// `to_json_bytes` converts the `RawDataEntry` to a `Vec<u8>`.
     pub fn to_json_bytes(&self) -> Result<Vec<u8>> {
         serde_json::to_vec(self)
             .map_err(|e| format!("{}", e))
@@ -215,7 +215,7 @@ impl DataEntry {
 
 #[cfg(test)]
 mod test {
-    use super::DataEntry;
+    use super::RawDataEntry;
 
     const VALID_ENTRY: &str = r#"{"title_tokenized": ["tifu", "by", "forgetting", "to", "pull", "my", "underwear", "down", "before", "i", "pooped"], "permalink": "/r/tifu/comments/1ghd5r/tifu_by_forgetting_to_pull_my_underwear_down/", "title": "TIFU by forgetting to pull my underwear down before I pooped.", "url": "https://www.reddit.com/r/tifu/comments/1ghd5r/tifu_by_forgetting_to_pull_my_underwear_down/", "num_comments": 13, "tldr": null, "created_utc": 1371426179.0, "trimmed_title_tokenized": ["forgetting", "to", "pull", "my", "underwear", "down", "before", "i", "pooped"], "id": "1ghd5r", "selftext_html": "<!-- SC_OFF --><div class=\"md\"><p>I was on Skype on my tablet as I went to the toilet IMing a friend. I don&#39;t multitask very well, so I forgot one of the most important things to do before pooping. I think the best part was when I realised and told my mate who just freaked out because I was talking to him on the John!</p>\n</div><!-- SC_ON -->", "score": 50, "upvote_ratio": 0.77, "tldr_tokenized": null, "selftext": "I was on Skype on my tablet as I went to the toilet IMing a friend. I don't multitask very well, so I forgot one of the most important things to do before pooping. I think the best part was when I realised and told my mate who just freaked out because I was talking to him on the John!", "trimmed_title": "forgetting to pull my underwear down before i pooped.", "selftext_without_tldr_tokenized": ["i", "was", "on", "skype", "on", "my", "tablet", "as", "i", "went", "to", "the", "toilet", "iming", "a", "friend", "i", "do", "n't", "multitask", "very", "well", "so", "i", "forgot", "one", "of", "the", "most", "important", "things", "to", "do", "before", "pooping", "i", "think", "the", "best", "part", "was", "when", "i", "realised", "and", "told", "my", "mate", "who", "just", "freaked", "out", "because", "i", "was", "talking", "to", "him", "on", "the", "john"], "ups": 50, "selftext_without_tldr": "i was on skype on my tablet as i went to the toilet iming a friend. i don't multitask very well, so i forgot one of the most important things to do before pooping. i think the best part was when i realised and told my mate who just freaked out because i was talking to him on the john!"}"#;
 
@@ -224,42 +224,42 @@ mod test {
     }
 
     #[test]
-    fn test_data_entry_serialize() {
-        let res = DataEntry::from_json_string(VALID_ENTRY);
+    fn test_raw_data_entry_serialize() {
+        let res = RawDataEntry::from_json_string(VALID_ENTRY);
         assert!(res.is_ok());
-        let data_entry_0 = res.unwrap();
-        let res = data_entry_0.to_json_string();
+        let raw_data_entry_0 = res.unwrap();
+        let res = raw_data_entry_0.to_json_string();
         assert!(res.is_ok());
-        let json_string_data_entry_0 = res.unwrap();
-        assert_eq!(data_entry_0, DataEntry::from_json_string(&json_string_data_entry_0).unwrap());
+        let json_string_raw_data_entry_0 = res.unwrap();
+        assert_eq!(raw_data_entry_0, RawDataEntry::from_json_string(&json_string_raw_data_entry_0).unwrap());
 
         let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value = res.unwrap();
 
-        let res = DataEntry::from_json_value(&json_value);
+        let res = RawDataEntry::from_json_value(&json_value);
         assert!(res.is_ok());
-        let data_entry_1 = res.unwrap();
-        let res = data_entry_1.to_json_string();
+        let raw_data_entry_1 = res.unwrap();
+        let res = raw_data_entry_1.to_json_string();
         assert!(res.is_ok());
-        let json_string_data_entry_1 = res.unwrap();
-        assert_eq!(data_entry_1, DataEntry::from_json_string(&json_string_data_entry_1).unwrap());
+        let json_string_raw_data_entry_1 = res.unwrap();
+        assert_eq!(raw_data_entry_1, RawDataEntry::from_json_string(&json_string_raw_data_entry_1).unwrap());
 
         let valid_entry_bytes = valid_entry_into_bytes();
-        let res = DataEntry::from_json_bytes(&valid_entry_bytes);
+        let res = RawDataEntry::from_json_bytes(&valid_entry_bytes);
         assert!(res.is_ok());
-        let data_entry_2 = res.unwrap();
-        let res = data_entry_2.to_json_bytes();
+        let raw_data_entry_2 = res.unwrap();
+        let res = raw_data_entry_2.to_json_bytes();
         assert!(res.is_ok());
-        let json_bytes_data_entry_2 = res.unwrap();
-        assert_eq!(data_entry_2, DataEntry::from_json_bytes(&json_bytes_data_entry_2).unwrap());
+        let json_bytes_raw_data_entry_2 = res.unwrap();
+        assert_eq!(raw_data_entry_2, RawDataEntry::from_json_bytes(&json_bytes_raw_data_entry_2).unwrap());
 
-        assert_eq!(data_entry_0, data_entry_1);
-        assert_eq!(data_entry_1, data_entry_2);
+        assert_eq!(raw_data_entry_0, raw_data_entry_1);
+        assert_eq!(raw_data_entry_1, raw_data_entry_2);
     }
 
     #[test]
-    fn test_data_entry_missing_fields() {
+    fn test_raw_data_entry_missing_fields() {
         let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value: serde_json::Value = res.unwrap();
@@ -268,26 +268,26 @@ mod test {
         missing_title_obj.remove("title");
 
         let missing_title_value: serde_json::Value = missing_title_obj.into();
-        let res = DataEntry::from_json_value(&missing_title_value);
+        let res = RawDataEntry::from_json_value(&missing_title_value);
         assert!(res.is_err());
 
         let mut missing_ups_obj = json_value.clone().as_object().unwrap().to_owned();
         missing_ups_obj.remove("ups");
 
         let missing_ups_value: serde_json::Value = missing_ups_obj.into();
-        let res = DataEntry::from_json_value(&missing_ups_value);
+        let res = RawDataEntry::from_json_value(&missing_ups_value);
         assert!(res.is_err());
 
         let mut missing_tldr_tokenized_obj = json_value.clone().as_object().unwrap().to_owned();
         missing_tldr_tokenized_obj.remove("tldr_tokenized");
 
         let missing_tldr_tokenized_value: serde_json::Value = missing_tldr_tokenized_obj.into();
-        let res = DataEntry::from_json_value(&missing_tldr_tokenized_value);
+        let res = RawDataEntry::from_json_value(&missing_tldr_tokenized_value);
         assert!(res.is_ok());
     }
 
     #[test]
-    fn test_data_entry_null_fields() {
+    fn test_raw_data_entry_null_fields() {
         let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value: serde_json::Value = res.unwrap();
@@ -296,26 +296,26 @@ mod test {
         null_selftext_obj["selftext"] = serde_json::json!(null);
 
         let null_selftext_value: serde_json::Value = null_selftext_obj.into();
-        let res = DataEntry::from_json_value(&null_selftext_value);
+        let res = RawDataEntry::from_json_value(&null_selftext_value);
         assert!(res.is_err());
 
         let mut null_score_obj = json_value.clone().as_object().unwrap().to_owned();
         null_score_obj["score"] = serde_json::json!(null);
 
         let null_score_value: serde_json::Value = null_score_obj.into();
-        let res = DataEntry::from_json_value(&null_score_value);
+        let res = RawDataEntry::from_json_value(&null_score_value);
         assert!(res.is_err());
 
         let mut null_tldr_obj = json_value.clone().as_object().unwrap().to_owned();
         null_tldr_obj["tldr"] = serde_json::json!(null);
 
         let null_tldr_value: serde_json::Value = null_tldr_obj.into();
-        let res = DataEntry::from_json_value(&null_tldr_value);
+        let res = RawDataEntry::from_json_value(&null_tldr_value);
         assert!(res.is_ok());
     }
 
     #[test]
-    fn test_data_entry_num_fields() {
+    fn test_raw_data_entry_num_fields() {
         let res = serde_json::from_str(VALID_ENTRY);
         assert!(res.is_ok());
         let json_value: serde_json::Value = res.unwrap();
@@ -324,28 +324,28 @@ mod test {
         f64_num_comments_obj["num_comments"] = serde_json::json!(0.1234);
 
         let f64_num_comments_value: serde_json::Value = f64_num_comments_obj.into();
-        let res = DataEntry::from_json_value(&f64_num_comments_value);
+        let res = RawDataEntry::from_json_value(&f64_num_comments_value);
         assert!(res.is_err());
 
         let mut f64_score_obj = json_value.clone().as_object().unwrap().to_owned();
         f64_score_obj["score"] = serde_json::json!(0.1234);
 
         let f64_score_value: serde_json::Value = f64_score_obj.into();
-        let res = DataEntry::from_json_value(&f64_score_value);
+        let res = RawDataEntry::from_json_value(&f64_score_value);
         assert!(res.is_err());
 
         let mut f64_ups_obj = json_value.clone().as_object().unwrap().to_owned();
         f64_ups_obj["ups"] = serde_json::json!(0.1234);
 
         let f64_ups_value: serde_json::Value = f64_ups_obj.into();
-        let res = DataEntry::from_json_value(&f64_ups_value);
+        let res = RawDataEntry::from_json_value(&f64_ups_value);
         assert!(res.is_err());
 
         let mut u64_created_utc_obj = json_value.clone().as_object().unwrap().to_owned();
         u64_created_utc_obj["created_utc"] = serde_json::json!(1234);
 
         let u64_created_utc_value: serde_json::Value = u64_created_utc_obj.into();
-        let res = DataEntry::from_json_value(&u64_created_utc_value);
+        let res = RawDataEntry::from_json_value(&u64_created_utc_value);
         assert!(res.is_ok());
     }
 }
