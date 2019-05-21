@@ -29,3 +29,22 @@ impl LongDataEntry {
     }
 }
 
+#[cfg(test)]
+mod test {
+    use super::LongDataEntry;
+    use crate::raw_data_entries::RawDataEntries;
+
+    #[test]
+    fn test_long_data_entry_from_raw() {
+        let count = 10;
+        let rds = RawDataEntries::from_tifu_dataset_file(count).unwrap();
+        for rd in rds {
+            let ld = LongDataEntry::from_raw(&rd);
+            assert_eq!(&ld.id, &rd.id);
+            assert_eq!(&ld.summary, &rd.tldr);
+            assert_eq!(&ld.summary_tokenized, &rd.tldr_tokenized);
+            assert_eq!(&ld.source, &rd.selftext_without_tldr);
+            assert_eq!(&ld.source_tokenized, &rd.selftext_without_tldr_tokenized);
+        }
+    }
+}

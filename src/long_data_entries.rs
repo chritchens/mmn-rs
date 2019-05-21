@@ -104,3 +104,112 @@ impl Iterator for LongDataEntries {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::LongDataEntries;
+    use crate::long_data_entry::LongDataEntry;
+    use std::iter::Iterator;
+
+    #[test]
+    fn test_long_data_entries_accessors() {
+        let mut d1 = LongDataEntry::new();
+        d1.summary = Some("d1".to_string());
+        let mut d2 = LongDataEntry::new();
+        d2.summary = Some("d2".to_string());
+        let mut d3 = LongDataEntry::new();
+        d3.summary = Some("d3".to_string());
+        
+        let mut ds = LongDataEntries::new();
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+
+        ds.push(d1.clone());
+        assert_eq!(ds.len(), 1);
+        assert!(!ds.is_empty());
+        assert_eq!(ds[0], d1);
+
+        ds.push(d2.clone());
+        assert_eq!(ds.len(), 2);
+        assert!(!ds.is_empty());
+        assert_eq!(ds[0], d1);
+        assert_eq!(ds[1], d2);
+
+        ds.push(d3.clone());
+        assert_eq!(ds.len(), 3);
+        assert!(!ds.is_empty());
+        assert_eq!(ds[0], d1);
+        assert_eq!(ds[1], d2);
+        assert_eq!(ds[2], d3);
+
+        for (i, v) in ds.clone().enumerate() {
+            assert_eq!(v, ds[i]);
+        }
+    }
+
+    #[test]
+    fn test_long_data_entries_modifiers() {
+        let d  = LongDataEntry::new();
+        let d1 = d.clone();
+        let d2 = d.clone();
+        let d3 = d.clone();
+
+        let mut ds = LongDataEntries::new();
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+
+        ds.push(d1);
+        assert_eq!(ds.len(), 1);
+        assert!(!ds.is_empty());
+
+        let dx_opt = ds.pop();
+        assert!(dx_opt.is_some());
+
+        let dx = dx_opt.unwrap();
+        assert_eq!(d, dx);
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+
+        ds.push(d2);
+        ds.push(d3);
+        assert_eq!(ds.len(), 2);
+        assert!(!ds.is_empty());
+
+        let dy_opt = ds.pop();
+        assert!(dy_opt.is_some());
+        let dz_opt = ds.pop();
+        assert!(dz_opt.is_some());
+
+        let dy = dy_opt.unwrap();
+        let dz = dz_opt.unwrap();
+        assert_eq!(dy, d);
+        assert_eq!(dz, d);
+        assert_eq!(ds.len(), 0);
+        assert!(ds.is_empty());
+    }
+
+    #[test]
+    fn test_long_data_entries_from_tifu_dataset_file() {
+        let count_1 = 0;
+        let count_2 = 10;
+        let count_3 = 20;
+
+        let res = LongDataEntries::from_tifu_dataset_file(count_1);
+        assert!(res.is_ok());
+
+        let ds_1 = res.unwrap();
+        assert_eq!(ds_1.len(), count_1 as usize);
+
+        let res = LongDataEntries::from_tifu_dataset_file(count_2);
+        assert!(res.is_ok());
+
+        let ds_2 = res.unwrap();
+        assert_eq!(ds_2.len(), count_2 as usize);
+
+        let res = LongDataEntries::from_tifu_dataset_file(count_3);
+        assert!(res.is_ok());
+
+        let ds_3 = res.unwrap();
+        assert_eq!(ds_3.len(), count_3 as usize);
+    }
+}

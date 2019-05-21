@@ -28,3 +28,23 @@ impl ShortDataEntry {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::ShortDataEntry;
+    use crate::raw_data_entries::RawDataEntries;
+
+    #[test]
+    fn test_short_data_entry_from_raw() {
+        let count = 10;
+        let rds = RawDataEntries::from_tifu_dataset_file(count).unwrap();
+        for rd in rds {
+            let sd = ShortDataEntry::from_raw(&rd);
+            assert_eq!(&sd.id, &rd.id);
+            assert_eq!(&sd.summary, &rd.trimmed_title);
+            assert_eq!(&sd.summary_tokenized, &rd.trimmed_title_tokenized);
+            assert_eq!(&sd.source, &rd.selftext_without_tldr);
+            assert_eq!(&sd.source_tokenized, &rd.selftext_without_tldr_tokenized);
+        }
+    }
+}
