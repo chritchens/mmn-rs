@@ -107,9 +107,7 @@ impl Iterator for RawDataEntries {
 mod test {
     use super::RawDataEntries;
     use crate::raw_data_entry::RawDataEntry;
-    use crate::path::tifu_training_data_path;
     use std::iter::Iterator;
-    use std::io::{BufRead, BufReader};
 
     #[test]
     fn test_raw_data_entries_accessors() {
