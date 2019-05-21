@@ -51,8 +51,8 @@ impl DataEntries {
         self.data.extend_from_slice(entries)
     }
 
-    /// `from_tifu_training_data` creates a `DataEntries` from the `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
-    pub fn from_tifu_training_data(count: i32) -> Result<DataEntries> {
+    /// `from_tifu_dataset_file` creates a `DataEntries` from `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
+    pub fn from_tifu_dataset_file(count: i32) -> Result<DataEntries> {
         thread::spawn(move || {
             let path = tifu_training_data_path();
             let file = File::open(&path).map_err(|e| format!("{}", e))?;
@@ -73,6 +73,11 @@ impl DataEntries {
         })
         .join()
         .unwrap()
+    }
+
+    /// `from_tifu_dataset_file_all` creates a `DataEntries` from all the `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
+    pub fn from_tifu_dataset_file_all() -> Result<DataEntries> {
+        DataEntries::from_tifu_dataset_file(-1)
     }
 }
 
@@ -184,24 +189,24 @@ mod test {
     }
 
     #[test]
-    fn test_data_entries_tifu_datasets() {
+    fn test_data_entries_from_tifu_dataset_file() {
         let count_1 = 0;
         let count_2 = 10;
         let count_3 = 20;
 
-        let res = DataEntries::from_tifu_training_data(count_1);
+        let res = DataEntries::from_tifu_dataset_file(count_1);
         assert!(res.is_ok());
 
         let ds_1 = res.unwrap();
         assert_eq!(ds_1.len(), count_1 as usize);
 
-        let res = DataEntries::from_tifu_training_data(count_2);
+        let res = DataEntries::from_tifu_dataset_file(count_2);
         assert!(res.is_ok());
 
         let ds_2 = res.unwrap();
         assert_eq!(ds_2.len(), count_2 as usize);
 
-        let res = DataEntries::from_tifu_training_data(count_3);
+        let res = DataEntries::from_tifu_dataset_file(count_3);
         assert!(res.is_ok());
 
         let ds_3 = res.unwrap();
