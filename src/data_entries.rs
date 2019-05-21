@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::{BufRead, BufReader};
 use std::borrow::ToOwned;
 use std::ops::Index;
 use std::iter::Iterator;
@@ -52,18 +52,21 @@ impl DataEntries {
     }
 
     /// `from_tifu_training_data` creates a `DataEntries` from the `DataEntry`s in `TIFU_TRAINING_DATA_PATH`.
-    pub fn from_tifu_training_data() -> Result<DataEntries> {
+    pub fn from_tifu_training_data(count: i32) -> Result<DataEntries> {
         thread::spawn(move || {
             let path = tifu_training_data_path();
-            let mut file = File::open(&path).map_err(|e| format!("{}", e))?;
-            let mut text = String::new();
-            file.read_to_string(&mut text).map_err(|e| format!("{}", e))?;
-            let lines = text.lines();
-
+            let file = File::open(&path).map_err(|e| format!("{}", e))?;
+            let reader = BufReader::new(file);
             let mut data_entries = DataEntries::new();
 
-            for line in lines {
-                data_entries.push(DataEntry::from_json_string(&line)?);
+            for (i, line) in reader.lines().enumerate() {
+                if i as i32 == count {
+                    break;
+                }
+
+                let json_data_entry = line.unwrap();
+                let data_entry = DataEntry::from_json_string(&json_data_entry)?;
+                data_entries.push(data_entry);
             }
 
             Ok(data_entries)
@@ -99,6 +102,9 @@ impl Iterator for DataEntries {
 mod test {
     use super::DataEntries;
     use crate::data_entry::DataEntry;
+    use crate::path::tifu_training_data_path;
+    use std::iter::Iterator;
+    use std::io::{BufRead, BufReader};
 
     #[test]
     fn test_data_entries_accessors() {
@@ -178,5 +184,27 @@ mod test {
     }
 
     #[test]
-    fn test_data_entries_tifu_datasets() {}
+    fn test_data_entries_tifu_datasets() {
+        let count_1 = 0;
+        let count_2 = 10;
+        let count_3 = 20;
+
+        let res = DataEntries::from_tifu_training_data(count_1);
+        assert!(res.is_ok());
+
+        let ds_1 = res.unwrap();
+        assert_eq!(ds_1.len(), count_1 as usize);
+
+        let res = DataEntries::from_tifu_training_data(count_2);
+        assert!(res.is_ok());
+
+        let ds_2 = res.unwrap();
+        assert_eq!(ds_2.len(), count_2 as usize);
+
+        let res = DataEntries::from_tifu_training_data(count_3);
+        assert!(res.is_ok());
+
+        let ds_3 = res.unwrap();
+        assert_eq!(ds_3.len(), count_3 as usize);
+    }
 }
